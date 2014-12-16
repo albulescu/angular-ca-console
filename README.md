@@ -11,3 +11,6 @@ bower install angular-ca-schedule --save
 ```js
 code
 ```
+
+## Demo
+http://albulescu.github.io/angular-ca-schedule/demo/
