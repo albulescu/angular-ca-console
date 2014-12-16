@@ -11,7 +11,8 @@
 module.exports = function(grunt) {
 
     require('jit-grunt')(grunt, {
-        usebanner : 'grunt-banner'
+        usebanner : 'grunt-banner',
+        ngtemplates: 'grunt-angular-templates',
     });
 
     var banner = '/**\n'+
@@ -43,6 +44,45 @@ module.exports = function(grunt) {
             tmp: '.tmp'
         },
 
+        // Compiles Less to CSS
+        less: {
+          options: {
+            paths: [
+              'src/styles'
+            ]
+          },
+          server: {
+            files: {
+              'ca-schedule.css' : 'src/styles/schedule.less'
+            }
+          },
+        },
+
+
+        // Package all the html partials into a single javascript payload
+        ngtemplates: {
+          options: {
+            // This should be the name of your apps angular module
+            module: 'ca.schedule.templates',
+            standalone: true,
+            prefix: 'ca-schedule/directive/',
+            htmlmin: {
+              collapseBooleanAttributes: true,
+              collapseWhitespace: true,
+              removeAttributeQuotes: true,
+              removeEmptyAttributes: false,
+              removeRedundantAttributes: true,
+              removeScriptTypeAttributes: true,
+              removeStyleLinkTypeAttributes: true
+            }
+          },
+          main: {
+            cwd: 'src/templates',
+            src: '**.html',
+            dest: '.tmp/templates.js'
+          },
+        },
+
         concat: {
             options: {
                 separator:'\n\n',
@@ -53,7 +93,7 @@ module.exports = function(grunt) {
                 },
             },
             dist: {
-                src: 'src/**/*.js',
+                src: ['.tmp/templates.js','src/**/*.js'],
                 dest: 'ca-schedule.js',
             },
         },
@@ -90,17 +130,25 @@ module.exports = function(grunt) {
         },
 
         watch: {
-            files: ['src/*'],
-            tasks: ['build']
+            source: {
+                files: ['src/**/*.js'],
+                tasks: ['build']
+            },
+            less: {
+                files: ['src/styles/**/*.less'],
+                tasks: ['less']
+            }
         }
 
     });
 
     grunt.registerTask('build', [
         'clean:tmp',
+        'ngtemplates',
         'concat',
         'ngAnnotate',
         'uglify',
+        'less',
         'usebanner',
     ]);
 
