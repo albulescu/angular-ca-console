@@ -1,6 +1,6 @@
 /**
- * Schedule AngularJS Module
- * https://github.com/albulescu/angular-ca-schedule
+ * Console AngularJS Module
+ * https://github.com/albulescu/angular-ca-console
  *
  * Author Albulescu Cosmin <cosmin@albulescu.ro>
  * Licensed under the MIT license.
@@ -16,8 +16,8 @@ module.exports = function(grunt) {
     });
 
     var banner = '/**\n'+
-                 '* Schedule AngularJS Module v<%= pkg.version %>\n'+
-                 '* https://github.com/albulescu/angular-ca-schedule\n'+
+                 '* Console AngularJS Module v<%= pkg.version %>\n'+
+                 '* https://github.com/albulescu/angular-ca-console\n'+
                  '*\n'+
                  '* Author Albulescu Cosmin <cosmin@albulescu.ro>\n'+
                  '* Licensed under the MIT license.\n'+
@@ -53,7 +53,7 @@ module.exports = function(grunt) {
           },
           server: {
             files: {
-              'ca-schedule.css' : 'src/styles/schedule.less'
+              'ca-console.css' : 'src/styles/console.less'
             }
           },
         },
@@ -63,9 +63,9 @@ module.exports = function(grunt) {
         ngtemplates: {
           options: {
             // This should be the name of your apps angular module
-            module: 'ca.schedule.templates',
+            module: 'ca.console.templates',
             standalone: true,
-            prefix: 'ca-schedule/directive/',
+            prefix: 'ca-console/directive/',
             htmlmin: {
               collapseBooleanAttributes: true,
               collapseWhitespace: true,
@@ -94,7 +94,7 @@ module.exports = function(grunt) {
             },
             dist: {
                 src: ['.tmp/templates.js','src/**/*.js'],
-                dest: 'ca-schedule.js',
+                dest: 'ca-console.js',
             },
         },
 
@@ -104,7 +104,7 @@ module.exports = function(grunt) {
             dist: {
                 files: [{
                     expand: true,
-                    src: 'ca-schedule.js'
+                    src: 'ca-console.js'
                 }]
             }
         },
@@ -112,7 +112,7 @@ module.exports = function(grunt) {
         uglify: {
             source: {
                 files: {
-                    'ca-schedule.min.js': ['ca-schedule.js']
+                    'ca-console.min.js': ['ca-console.js']
                 }
             }
         },
@@ -124,14 +124,14 @@ module.exports = function(grunt) {
                     banner: banner,
                 },
                 files: {
-                    src: ['ca-schedule.min.js']
+                    src: ['ca-console.min.js']
                 }
             }
         },
 
         watch: {
             source: {
-                files: ['src/**/*.js'],
+                files: ['src/*.js','src/**/*.js', 'src/templates/*.html'],
                 tasks: ['build']
             },
             less: {

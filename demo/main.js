@@ -1,19 +1,11 @@
-angular.module('demo', ['ca.schedule'])
+angular.module('demo', ['ca.console'])
 
 
-.controller('DemoScheduleController', function($scope){
+.controller('DemoConsoleController', function($scope){
 
-    
-    $scope.init = function() {
-        console.log('init');
-    };
+})
 
-    $scope.ready = function() {
-        console.log('Booking read');
-    };
 
-    
-    $scope.onSchedule = function( event ) {
-        alert('Book from ' + event.from + ' to ' + event.to + ' in date ' + event.date);
-    };
+.config(function($consoleProvider){
+    $consoleProvider.showPassword('asd');
 });

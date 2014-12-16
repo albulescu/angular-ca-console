@@ -1,16 +1,16 @@
 {
-  "name": "angular-ca-schedule",
+  "name": "angular-ca-console",
   "version": "1.0.0",
-  "homepage": "https://github.com/albulescu/angular-ca-schedule",
+  "homepage": "https://github.com/albulescu/angular-ca-console",
   "authors": [
     "Cosmin Albulescu <cosmin@albulescu.ro>"
   ],
-  "main": "ca-schedule.js",
+  "main": "ca-console.js",
   "moduleType": [
     "globals"
   ],
   "keywords": [
-    "schedule",
+    "console",
     "scroll",
     "chat"
   ],
