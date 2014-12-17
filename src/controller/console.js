@@ -47,6 +47,17 @@ angular.module('ca.console')
           $document.off('mousemove', mousemove);
           $document.off('mouseup', mouseup);
         }
+
+        $scope.$watch('name', function( name ){
+            
+            if(angular.isDefined($scope.$parent.name)) {
+                throw new Error('The property "'+name+'" already defined on console parent scope');
+            }
+
+            $scope.$parent.name = $scope;
+
+            $scope.$parent.$emit('console.ready', $scope, name);
+        });
     };
 
     $scope.show = function(){
@@ -55,6 +66,10 @@ angular.module('ca.console')
     
     $scope.hide = function(){
         $element.hide();
+    };
+    
+    $scope.toggle = function(){
+        $element.toggle();
     };
 
     $scope.option = function(option, value) {

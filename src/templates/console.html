@@ -1,9 +1,9 @@
-<div class="ca-console" ng-init="init()" ng-style="style">
+<div tabindex="-1" class="ca-console ng-cloak" ng-show="visible" ng-init="init()" ng-style="style">
     <div class="ca-console-header">
         
     </div>
 
-    <div class="ca-console-body">
+    <div class="ca-console-body" auto-scroll="true">
         <ul>
             <li ng-class="classes[log.type]" 
                 ng-repeat="log in logs">
@@ -17,6 +17,6 @@
     </div>
 
     <div class="ca-console-move" title="Move console"></div>
-    <div class="ca-console-close" title="Close console" ng-click="hide()"></div>
+    <div class="ca-console-close" title="Close console" ng-click="console.hide()"></div>
     <div class="ca-console-resize" title="Resize console"></div>
 </div>

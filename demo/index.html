@@ -12,6 +12,11 @@
         <script src="main.js"></script>
     </head>
     <body ng-app="demo" ng-controller="DemoConsoleController" ng-init="init()">
-        <button ng-click="log('error')">Error</button>
+        <div style="padding:10px;">
+            <button ng-click="console.show()">Show</button>
+            <button ng-click="console.hide()">Hide</button>
+            <button ng-click="console.toggle()">Toggle</button>
+            <button ng-click="cmd1()">CommandSum</button>
+        </div>
     </body>
 </html>
