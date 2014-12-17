@@ -13,10 +13,15 @@
     </head>
     <body ng-app="demo" ng-controller="DemoConsoleController" ng-init="init()">
         <div style="padding:10px;">
-            <button ng-click="console.show()">Show</button>
-            <button ng-click="console.hide()">Hide</button>
-            <button ng-click="console.toggle()">Toggle</button>
-            <button ng-click="cmd1()">CommandSum</button>
+            <button ng-click="console.show()">console.show()</button>
+            <button ng-click="console.hide()">console.hide()</button>
+            <button ng-click="console.toggle()">console.toggle()</button>
+            <button ng-click="cmd1()">Command: cmd1()</button>
+            <button ng-click="console.log('Log message')">console.log('Log message')</button>
+            <button ng-click="console.error('Error message')">console.error('Error message')</button>
+            <button ng-click="console.info('Info message')">console.info('Info message')</button>
+            <button ng-click="console.warn('Warn message')">console.warn('Warn message')</button>
+            <button ng-click="console.debug('Debug message')">console.debug('Debug message')</button>
         </div>
     </body>
 </html>
