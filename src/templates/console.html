@@ -1,54 +1,22 @@
-<div class="ca-console" ng-controller="ConsoleController" ng-init="init()" ng-style="style">
+<div class="ca-console" ng-init="init()" ng-style="style">
     <div class="ca-console-header">
         
     </div>
 
     <div class="ca-console-body">
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
-        <div>asdada</div>
+        <ul>
+            <li ng-class="classes[log.type]" 
+                ng-repeat="log in logs">
+                {{log.body}}
+            </li>
+        </ul>
     </div>
 
     <div class="ca-console-command">
-        <input></input>
+        <input ng-model="command" ng-keydown="keydown($event)"></input>
     </div>
 
     <div class="ca-console-move" title="Move console"></div>
-    <div class="ca-console-close" title="Close console"></div>
+    <div class="ca-console-close" title="Close console" ng-click="hide()"></div>
     <div class="ca-console-resize" title="Resize console"></div>
 </div>

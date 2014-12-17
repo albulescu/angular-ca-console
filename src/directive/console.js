@@ -7,6 +7,8 @@ angular.module('ca.console')
     return {
         restrict    : 'E',
         replace     : true,
+        scope       : true,
+        controller  : 'ConsoleController',
         templateUrl : 'ca-console/directive/console.html'
     };
 });

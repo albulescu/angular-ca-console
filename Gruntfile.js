@@ -130,6 +130,7 @@ module.exports = function(grunt) {
         },
 
         watch: {
+            options: { livereload: true },
             source: {
                 files: ['src/*.js','src/**/*.js', 'src/templates/*.html'],
                 tasks: ['build']

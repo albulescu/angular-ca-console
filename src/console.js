@@ -4,19 +4,92 @@ angular.module('ca.console',['ca.console.templates'])
 
 .provider('$console', function(){
 
-    var self = this;
+    var configuration = {};
 
-    var options = {};
-
-    this.overrideNative = function() {
-
+    this.overrideBrowserConsole = function() {
+        configuration.overrideBrowserConsole = true;
     };
 
     this.showPassword = function( password ) {
-        options.password = password;
+        configuration.showPassword = password;
     };
 
-    this.$get = function(){
-        return self;
+    this.position = function( position ) {
+        configuration.position = position;
+    };
+
+    this.$get = function( $rootScope, $timeout, $document, $compile ){
+
+        var self;
+        var scope;
+
+        var $console = function $console(){
+
+            self = this;
+
+            /**
+             * Hide console on blur
+             * @type {String}
+             */
+            this.HIDE_ON_BLUR = 'hideOnBlur';
+
+            /**
+             * Enable console animations
+             * @type {String}
+             */
+            this.USE_ANIMATIONS = 'useAnimations';
+
+
+            var element = document.createElement('console');
+
+            //element.style.display = 'none';
+
+            angular.element('body').append(element);
+
+            var scope = $rootScope.$new(true);
+
+            $compile(element)(scope);
+
+            for( var option in configuration ) {
+                //scope.option(option, configuration[option]);
+            }
+
+
+            this.element = element;
+        };
+
+
+        $console.prototype.log = function(){
+            this.element.scope().log.apply(
+                this.element.scope().log,
+                arguments
+            );
+        };
+
+        $console.prototype.show = function(){
+            return (this.console.show||this.console.fadeIn)();
+        };
+
+
+        var clearPasswordInterval,
+            passwordChars = [];
+
+        angular.element(document).keypress(function(event){
+
+            passwordChars.push(String.fromCharCode(event.keyCode));
+
+            if( passwordChars.join('') === options.showPassword ) {
+                self.show();
+            }
+
+            $timeout.cancel(clearPasswordInterval);
+            
+            clearPasswordInterval = $timeout(function(){
+                passwordChars=[];
+            }, 3000);
+        });
+
+
+        return new $console();
     };
 });
