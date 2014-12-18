@@ -6,6 +6,7 @@ angular.module('demo', ['ca.console'])
     $scope.console = $console;
 
     $console.show();
+
 /*
     $console.error('adas');
     $console.show();
@@ -32,6 +33,4 @@ angular.module('demo', ['ca.console'])
     $consoleProvider.showPassword('asd');
 
     $consoleProvider.position('TR');
-
-    $consoleProvider.overrideBrowserConsole();
 });

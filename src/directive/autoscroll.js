@@ -10,7 +10,7 @@
 
 angular.module('ca.console')
 
-.directive('autoScroll', ["$timeout", "$q", "$parse", "$log", function( $timeout, $q, $parse, $log ){
+.directive('autoScroll', ['$timeout', '$q', '$parse', '$log', function( $timeout, $q, $parse, $log ){
 
     return {
         restrict : 'A',

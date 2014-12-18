@@ -1,3 +1,5 @@
+'use strict';
+
 angular.module('ca.console', ['ca.console.templates'])
 
 .constant('DEFAULT_SIZE', [600, 250])
@@ -53,8 +55,7 @@ angular.module('ca.console', ['ca.console.templates'])
 
         var scope = $rootScope.$new(true),
             element = null,
-            readyFn = angular.noop,
-            isReady = false,
+            instance= null,
             commands = {};
 
         scope.visible   = null;
@@ -81,6 +82,10 @@ angular.module('ca.console', ['ca.console.templates'])
 
             var startX = element.offset().left,
                 startY = element.offset().top,
+                startW = element.width(),
+                startH = element.height(),
+                dragStartX = 0,
+                dragStartY = 0,
                 x = startX,
                 y = startY;
 
@@ -91,7 +96,30 @@ angular.module('ca.console', ['ca.console.templates'])
                 startY = event.screenY - y;
                 $document.on('mousemove', mousemove);
                 $document.on('mouseup', mouseup);
+                scope.$emit('move.start');
             });
+
+            element.find('.ca-console-resize').on('mousedown', function(event){              
+                event.preventDefault();
+                startW = element.width();
+                startH = element.height();
+                dragStartX = event.screenX;
+                dragStartY = event.screenY;
+                $document.on('mousemove', mouseMoveResize);
+                $document.on('mouseup', mouseUpResize);
+                scope.$emit('resize.start');
+            });
+
+            function mouseMoveResize() {
+                instance.resize(startW + ( event.screenX - dragStartX ),
+                                startH + ( event.screenY - dragStartY ));
+                scope.$emit('resize');
+            }
+
+            function mouseUpResize() {
+                $document.off('mousemove', mouseMoveResize);
+                $document.off('mouseup', mouseUpResize);                
+            }
 
             function mousemove(event) {
                 y = event.screenY - startY;
@@ -100,11 +128,13 @@ angular.module('ca.console', ['ca.console.templates'])
                     top: y + 'px',
                     left: x + 'px'
                 });
+                scope.$emit('move',x,y);
             }
 
             function mouseup() {
                 $document.off('mousemove', mousemove);
                 $document.off('mouseup', mouseup);
+                scope.$emit('move.complete');
             }
         }
 
@@ -125,6 +155,7 @@ angular.module('ca.console', ['ca.console.templates'])
             });
         }
 
+        /* jshint ignore:start */
         function flaged(flags,mask) {
             return mask === (flags & mask);
         }
@@ -144,17 +175,19 @@ angular.module('ca.console', ['ca.console.templates'])
             }
             return flags;
         }
+        /* jshint ignore:end */
 
         function wrapLog( level ) {
             
-            return function $consoleLog() {
+            return function ConsoleLog() {
+                
                 var params = Array.prototype.slice.call(arguments);
+                
                 scope.logs.push({
                     body: params.join(', '),
                     type:level,
                     time:(new Date()).getTime()
                 });
-                scope.$digest();
             };
         }
 
@@ -164,23 +197,23 @@ angular.module('ca.console', ['ca.console.templates'])
             }
         });
 
-        var $console = function $console() {
+        var Console = function Console() {
             angular.extend(this, Opt);
             scope.console = this;
         };
 
-        $console.prototype.log = function() {
+        Console.prototype.log = function() {
             element.scope().log.apply(
                 this.element.scope().log,
                 arguments
             );
         };
 
-        $console.prototype.command = function(name, fn, bind) {
+        Console.prototype.command = function(name, fn, bind) {
             commands[name] = bind ? fn.bind(bind) : fn;
         };
 
-        $console.prototype.exec = function() {
+        Console.prototype.exec = function() {
 
             if (arguments.length === 0) {
                 throw new Error('ecnr');
@@ -192,25 +225,54 @@ angular.module('ca.console', ['ca.console.templates'])
             command.apply(undefined, params);
         };
 
-        $console.prototype.hide = function() {
+        Console.prototype.hide = function() {
             scope.visible = false;
+            scope.$emit('hide');
         };
 
-        $console.prototype.show = function() {
+        Console.prototype.show = function() {
             scope.visible = true;
+            scope.$emit('hide');
         };
 
-        $console.prototype.toggle = function() {
-            scope.visible = !scope.visible;
+        Console.prototype.toggle = function() {
+            if (scope.visible) {
+                scope.hide();
+            } else {
+                scope.show();
+            }
         };
 
-        $console.prototype.log = wrapLog( Opt.LOG_NORMAL );
+        Console.prototype.resize = function(w,h) {
 
-        $console.prototype.info = wrapLog( Opt.LOG_INFO );
+            if( w > 400 ) {
+                scope.style.width = w;
+            }
 
-        $console.prototype.warn = wrapLog( Opt.LOG_WARN );
+            if( h > 200 ) {
+                scope.style.height = h;
+            }
 
-        $console.prototype.error = wrapLog( Opt.LOG_ERROR );
+            scope.$emit('resize.complete');
+
+            scope.$digest();
+        };
+
+        Console.prototype.log = wrapLog( Opt.LOG_NORMAL );
+
+        Console.prototype.info = wrapLog( Opt.LOG_INFO );
+
+        Console.prototype.warn = wrapLog( Opt.LOG_WARN );
+
+        Console.prototype.error = wrapLog( Opt.LOG_ERROR );
+
+        Console.prototype.on = function( name , listener ) {
+            return scope.$on(name, listener);
+        };
+
+        Console.prototype.emit = function() {
+            return scope.$emit.apply(scope, arguments);
+        };
 
 
         var clearPasswordInterval,
@@ -231,7 +293,7 @@ angular.module('ca.console', ['ca.console.templates'])
             }, 3000);
         });
 
-        var instance = new $console();
+        instance = new Console();
 
         if( config.overrideBrowserConsole ) {
 

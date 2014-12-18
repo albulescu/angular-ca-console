@@ -144,6 +144,7 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('build', [
+        'jshint:source',
         'clean:tmp',
         'ngtemplates',
         'concat',
