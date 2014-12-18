@@ -71,6 +71,7 @@ angular.module('ca.console', ['ca.console.templates'])
 
         var scope = $rootScope.$new(true),
             element = null,
+            messagesListElement = null,
             instance= null,
             commands = {};
 
@@ -130,6 +131,7 @@ angular.module('ca.console', ['ca.console.templates'])
                 instance.resize(startW + ( event.screenX - dragStartX ),
                                 startH + ( event.screenY - dragStartY ));
                 scope.$emit('resize');
+                messagesListElement[0].scrollTop = messagesListElement[0].scrollHeight;
             }
 
             function mouseUpResize() {
@@ -162,6 +164,8 @@ angular.module('ca.console', ['ca.console.templates'])
             }).success(function(html) {
 
                 element = angular.element(html);
+
+                messagesListElement = element.find('.ca-console-body');
 
                 angular.element('body').append(element);
 
