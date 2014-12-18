@@ -188,11 +188,23 @@ angular.module('ca.console', ['ca.console.templates'])
                 var params = Array.prototype.slice.call(arguments);
                 
                 scope.logs.push({
-                    body: params.join(', '),
+                    body:params,
                     type:level,
                     time:(new Date()).getTime()
                 });
             };
+        }
+
+        function commandParams( command )
+        {
+            var fn = commands[command];
+
+            if( angular.isUndefined(fn) ) {
+                throw new Error('Command "'+name+'" is not registered');
+            }
+
+            return fn.toString().slice(fn.toString().indexOf('(') + 1, fn.toString().indexOf(')'))
+                                    .match(/([^\s,]+)/g);
         }
 
         function evalCommandLine( expression ) {
@@ -270,9 +282,7 @@ angular.module('ca.console', ['ca.console.templates'])
             }
 
             var fn = commands[command];
-
-            var args = fn.toString().slice(fn.toString().indexOf('(') + 1, fn.toString().indexOf(')'))
-                                    .match(/([^\s,]+)/g);
+            var args = commandParams( command );
 
             if( args && args.length > params.length ) {
                 throw new Error('Invalid arguments length. Command "'+command+'" has ' + args.length + ' params');
@@ -416,6 +426,19 @@ angular.module('ca.console', ['ca.console.templates'])
             instance.hide();
         });
 
+        instance.command('commands', function(){
+            
+            var output = '';
+
+            for(var command in commands)
+            {
+                var args = commandParams(command) || [];
+                output += command+'('+args.join(',')+')\n';
+            }
+
+            return output;
+        });
+
         instance.command('resize', function(w,h){
             if( this.resize(w, h) ) {
                 this.log('Resized to '+w+'x'+h );
@@ -437,4 +460,8 @@ angular.module('ca.console', ['ca.console.templates'])
 
         return instance;
     };
+})
+
+.config(function($sceProvider){
+     $sceProvider.enabled(false);
 });

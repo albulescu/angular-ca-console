@@ -10,7 +10,7 @@
 
 angular.module('ca.console.templates', []).run(['$templateCache', function($templateCache) {
 $templateCache.put('ca-console/directive/console.html',
-    "<div tabindex=-1 class=\"ca-console ng-cloak\" ng-show=visible ng-init=init() ng-style=style><div class=ca-console-header></div><div class=ca-console-body auto-scroll=true><ul><li ng-class=classes[log.type] ng-repeat=\"log in logs\">{{log.body}}</li></ul></div><div class=ca-console-command><input ng-model=expression ng-keydown=commandKeyDown($event)></div><div class=ca-console-move title=\"Move console\"></div><div class=ca-console-close title=\"Close console\" ng-click=console.hide()></div><div class=ca-console-resize title=\"Resize console\"></div></div>"
+    "<div tabindex=-1 class=\"ca-console ng-cloak\" ng-show=visible ng-init=init() ng-style=style><div class=ca-console-header></div><div class=ca-console-body auto-scroll=true><ul><li ng-class=classes[log.type] ng-repeat=\"log in logs\" ng-bind-html=log.body|log></li></ul></div><div class=ca-console-command><input ng-model=expression ng-keydown=commandKeyDown($event)></div><div class=ca-console-move title=\"Move console\"></div><div class=ca-console-close title=\"Close console\" ng-click=console.hide()></div><div class=ca-console-resize title=\"Resize console\"></div></div>"
   );
 
 }]);
@@ -204,11 +204,23 @@ angular.module('ca.console', ['ca.console.templates'])
                 var params = Array.prototype.slice.call(arguments);
                 
                 scope.logs.push({
-                    body: params.join(', '),
+                    body:params,
                     type:level,
                     time:(new Date()).getTime()
                 });
             };
+        }
+
+        function commandParams( command )
+        {
+            var fn = commands[command];
+
+            if( angular.isUndefined(fn) ) {
+                throw new Error('Command "'+name+'" is not registered');
+            }
+
+            return fn.toString().slice(fn.toString().indexOf('(') + 1, fn.toString().indexOf(')'))
+                                    .match(/([^\s,]+)/g);
         }
 
         function evalCommandLine( expression ) {
@@ -286,9 +298,7 @@ angular.module('ca.console', ['ca.console.templates'])
             }
 
             var fn = commands[command];
-
-            var args = fn.toString().slice(fn.toString().indexOf('(') + 1, fn.toString().indexOf(')'))
-                                    .match(/([^\s,]+)/g);
+            var args = commandParams( command );
 
             if( args && args.length > params.length ) {
                 throw new Error('Invalid arguments length. Command "'+command+'" has ' + args.length + ' params');
@@ -432,6 +442,19 @@ angular.module('ca.console', ['ca.console.templates'])
             instance.hide();
         });
 
+        instance.command('commands', function(){
+            
+            var output = '';
+
+            for(var command in commands)
+            {
+                var args = commandParams(command) || [];
+                output += command+'('+args.join(',')+')\n';
+            }
+
+            return output;
+        });
+
         instance.command('resize', function(w,h){
             if( this.resize(w, h) ) {
                 this.log('Resized to '+w+'x'+h );
@@ -453,7 +476,11 @@ angular.module('ca.console', ['ca.console.templates'])
 
         return instance;
     }];
-});
+})
+
+.config(["$sceProvider", function($sceProvider){
+     $sceProvider.enabled(false);
+}]);
 
 angular.module('ca.console')
 
@@ -593,3 +620,39 @@ angular.module('ca.console')
         templateUrl : 'ca-console/directive/console.html'
     };
 });
+
+
+angular.module('ca.console')
+
+.filter('log', ["$sce", function( $sce ){
+
+    var parse = function( value ) {
+
+        var output = '';
+
+        if( value instanceof Error ) {
+            output = value.stack;
+        }
+
+        else if( angular.isObject(value) ){
+            output = JSON.stringify(value);
+        }
+
+        else {
+            output = value;
+        }
+
+        output = output.replace(/(?:\r\n|\r|\n)/g, '<br/>');
+
+        output = $sce.getTrustedUrl( output );
+        
+        output = $sce.getTrustedHtml( output );
+
+
+        return output;
+    };
+
+    return function( body ) {
+        return body.map(parse).join(',');
+    };
+}]);

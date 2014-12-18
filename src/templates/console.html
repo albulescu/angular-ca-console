@@ -6,8 +6,8 @@
     <div class="ca-console-body" auto-scroll="true">
         <ul>
             <li ng-class="classes[log.type]" 
-                ng-repeat="log in logs">
-                {{log.body}}
+                ng-repeat="log in logs"
+                ng-bind-html="log.body|log">
             </li>
         </ul>
     </div>
