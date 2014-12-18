@@ -5,6 +5,10 @@ angular.module('demo', ['ca.console'])
 
     $scope.console = $console;
 
+    $console.command('sum', function(a,b){
+        return a + b;
+    });
+
     $console.show();
 
 /*

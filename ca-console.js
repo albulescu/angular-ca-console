@@ -10,7 +10,7 @@
 
 angular.module('ca.console.templates', []).run(['$templateCache', function($templateCache) {
 $templateCache.put('ca-console/directive/console.html',
-    "<div tabindex=-1 class=\"ca-console ng-cloak\" ng-show=visible ng-init=init() ng-style=style><div class=ca-console-header></div><div class=ca-console-body auto-scroll=true><ul><li ng-class=classes[log.type] ng-repeat=\"log in logs\">{{log.body}}</li></ul></div><div class=ca-console-command><input ng-model=command ng-keydown=keydown($event)></div><div class=ca-console-move title=\"Move console\"></div><div class=ca-console-close title=\"Close console\" ng-click=console.hide()></div><div class=ca-console-resize title=\"Resize console\"></div></div>"
+    "<div tabindex=-1 class=\"ca-console ng-cloak\" ng-show=visible ng-init=init() ng-style=style><div class=ca-console-header></div><div class=ca-console-body auto-scroll=true><ul><li ng-class=classes[log.type] ng-repeat=\"log in logs\">{{log.body}}</li></ul></div><div class=ca-console-command><input ng-model=expression ng-keydown=commandKeyDown($event)></div><div class=ca-console-move title=\"Move console\"></div><div class=ca-console-close title=\"Close console\" ng-click=console.hide()></div><div class=ca-console-resize title=\"Resize console\"></div></div>"
   );
 
 }]);
@@ -81,7 +81,7 @@ angular.module('ca.console', ['ca.console.templates'])
 
         scope.logs      = [];
 
-        scope.command   = '';
+        scope.expression   = '';
 
         scope.filter    = '';
 
@@ -211,11 +211,122 @@ angular.module('ca.console', ['ca.console.templates'])
             };
         }
 
+        function evalCommandLine( expression ) {
+
+            var matches = expression.match(/^(:[a-zA-Z-_]*)(.*)?$/);
+
+            if(!matches) {
+                throw new Error('Invalid expression "'+expression+'"');
+            }
+
+            var command = matches[1];
+            var paramsExp  = (matches[2] || '').trim();
+
+           var inString=false,
+                capture=true,
+                group=[],
+                param='',
+                params = [];
+
+            for (var i = 0; i < paramsExp.length; i++) {
+                
+                var c = paramsExp[i];
+
+                if( c === '"' || 
+                    c === '\'' ) {
+                    inString=!inString;
+                }
+
+                if( c === ',' && !inString )
+                {
+                    if( capture && group.length === 0) {
+                        throw new Error('Invalid expression. Please remove comma from index ' + i);
+                    }
+
+                    capture=!capture;
+                }
+
+                if( capture && c !== ' ' ){
+                    group.push(c);
+                }
+
+                if( c === ',' && !capture && !inString || i === paramsExp.length - 1 ) {
+                    
+                    try
+                    {
+                        /* jshint evil:true */
+                        param = eval(group.join(''));
+                        /* jshint evil:false */
+                    } catch(e) {
+                        throw new Error('Invalid parameter "'+group.join('')+'"');
+                    }
+
+                    params.push(param);
+                    group=[];
+                    capture=true;
+                } 
+            }
+
+            params.unshift(command);
+
+            return execCommand.apply(null,params);
+        }
+
+        function execCommand() {
+
+            if ( arguments.length === 0 ) {
+                throw new Error('ecnr');
+            }
+
+            var params = Array.prototype.slice.call(arguments);
+            var command = params.shift().substring(1);
+
+            if(!angular.isFunction(commands[command])) {
+                throw new Error('Command "'+command+'('+params.join(', ')+')" not found!');
+            }
+
+            var fn = commands[command];
+
+            var args = fn.toString().slice(fn.toString().indexOf('(') + 1, fn.toString().indexOf(')'))
+                                    .match(/([^\s,]+)/g);
+
+            if( args && args.length > params.length ) {
+                throw new Error('Invalid arguments length. Command "'+command+'" has ' + args.length + ' params');
+            }
+
+            return fn.apply(instance, params);
+        }
+
         scope.$watch('visible', function watchVisible(state) {
             if (typeof(state) === 'boolean' && !element) {
                 createUI();
             }
         });
+
+        scope.commandKeyDown = function(event) {
+            if( event.keyCode === 13 ) {
+                
+                var expression = scope.expression;
+
+                if( expression === '' ) {
+                    return;
+                }
+
+                scope.expression = '';
+
+                try
+                {
+                    var output = evalCommandLine(expression);
+                    
+                    if( angular.isDefined(output) ) {
+                        instance.log(output);
+                    }
+                }
+                catch(e) {
+                    instance.error( e );
+                }
+            }
+        };
 
         var Console = function Console() {
             angular.extend(this, Opt);
@@ -234,15 +345,7 @@ angular.module('ca.console', ['ca.console.templates'])
         };
 
         Console.prototype.exec = function() {
-
-            if (arguments.length === 0) {
-                throw new Error('ecnr');
-            }
-
-            var params = Array.prototype.slice.call(arguments);
-            var command = commands[params.shift()] || angular.noop;
-
-            command.apply(undefined, params);
+            execCommand.apply(null, arguments);
         };
 
         Console.prototype.hide = function() {
@@ -265,17 +368,23 @@ angular.module('ca.console', ['ca.console.templates'])
 
         Console.prototype.resize = function(w,h) {
 
+            var resized = false;
+
             if( w > 400 ) {
                 scope.style.width = w;
+                resized = true;
             }
 
             if( h > 200 ) {
                 scope.style.height = h;
+                resized = true;
             }
 
             scope.$emit('resize.complete');
 
-            scope.$digest();
+            try { scope.$digest(); } catch(e) {}
+
+            return resized;
         };
 
         Console.prototype.log = wrapLog( Opt.LOG_NORMAL );
@@ -314,6 +423,20 @@ angular.module('ca.console', ['ca.console.templates'])
         });
 
         instance = new Console();
+
+        instance.command('level', function( level ){
+            instance.log('Set log level to ' + level);
+        });
+
+        instance.command('hide', function(){
+            instance.hide();
+        });
+
+        instance.command('resize', function(w,h){
+            if( this.resize(w, h) ) {
+                this.log('Resized to '+w+'x'+h );
+            }
+        });
 
         if( config.overrideBrowserConsole ) {
 
