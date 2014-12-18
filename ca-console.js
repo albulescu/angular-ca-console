@@ -127,7 +127,7 @@ angular.module('ca.console', ['ca.console.templates'])
                 scope.$emit('resize.start');
             });
 
-            function mouseMoveResize() {
+            function mouseMoveResize(event) {
                 instance.resize(startW + ( event.screenX - dragStartX ),
                                 startH + ( event.screenY - dragStartY ));
                 scope.$emit('resize');
